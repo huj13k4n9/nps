@@ -1,8 +1,19 @@
 package version
 
-const VERSION = "0.26.10"
+import "strings"
 
-// Compulsory minimum version, Minimum downward compatibility to this version
-func GetVersion() string {
-	return "0.26.0"
+const VERSION = "0.27.0"
+
+func CheckVersionRequirement(ver string) bool {
+	currentVersion := VERSION
+	versionPrefixOfInput := ver[:strings.LastIndexByte(ver, '.')]
+	versionPrefix := currentVersion[:strings.LastIndexByte(currentVersion, '.')]
+
+	return versionPrefix == versionPrefixOfInput
+}
+
+func MinVersion() string {
+	currentVersion := VERSION
+	versionPrefix := currentVersion[:strings.LastIndexByte(currentVersion, '.')]
+	return versionPrefix + ".0"
 }

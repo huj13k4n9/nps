@@ -165,14 +165,8 @@ func (s *Bridge) verifySuccess(c *conn.Conn) {
 
 func (s *Bridge) cliProcess(c *conn.Conn) {
 	//read test flag
-	if _, err := c.GetShortContent(3); err != nil {
+	if _, err := c.GetShortContent(len(common.CONN_TEST)); err != nil {
 		logs.Info("The client %s connect error", c.Conn.RemoteAddr(), err.Error())
-		return
-	}
-	//version check
-	if b, err := c.GetShortLenContent(); err != nil || string(b) != version.GetVersion() {
-		logs.Info("The client %s version does not match", c.Conn.RemoteAddr())
-		c.Close()
 		return
 	}
 	//version get
@@ -183,8 +177,14 @@ func (s *Bridge) cliProcess(c *conn.Conn) {
 		c.Close()
 		return
 	}
+	//version check
+	if !version.CheckVersionRequirement(string(vs)) {
+		logs.Info("The client %s version does not match", c.Conn.RemoteAddr())
+		c.Close()
+		return
+	}
 	//write server version to client
-	c.Write([]byte(crypt.Md5(version.GetVersion())))
+	c.Write([]byte(crypt.Md5(version.MinVersion())))
 	c.SetReadDeadlineBySecond(5)
 	var buf []byte
 	//get vKey from client
