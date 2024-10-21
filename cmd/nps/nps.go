@@ -28,8 +28,9 @@ import (
 )
 
 var (
-	level string
-	ver   = flag.Bool("version", false, "show current version")
+	level      string
+	ver        = flag.Bool("version", false, "show current version")
+	configPath = flag.String("config", "", "path to config directory")
 )
 
 func main() {
@@ -39,8 +40,18 @@ func main() {
 		common.PrintVersion()
 		return
 	}
-	if err := beego.LoadAppConfig("ini", filepath.Join(common.GetRunPath(), "conf", "nps.conf")); err != nil {
-		log.Fatalln("load config file error", err.Error())
+	if *configPath == "" {
+		if err := beego.LoadAppConfig("ini", filepath.Join(common.GetRunPath(), "conf", "nps.conf")); err != nil {
+			log.Fatalln("load config file error", err.Error())
+		}
+	} else {
+		absConfigPath, err := filepath.Abs(*configPath)
+		if err != nil {
+			log.Fatalln("invalid config path", err.Error())
+		}
+		if err = beego.LoadAppConfig("ini", filepath.Join(absConfigPath, "conf", "nps.conf")); err != nil {
+			log.Fatalln("load config file error", err.Error())
+		}
 	}
 	common.InitPProfFromFile()
 	if level = beego.AppConfig.String("log_level"); level == "" {
@@ -147,8 +158,7 @@ func main() {
 			install.UpdateNps()
 			return
 		default:
-			logs.Error("command is not support")
-			return
+			break
 		}
 	}
 	_ = s.Run()
